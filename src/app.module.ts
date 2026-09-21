@@ -13,7 +13,7 @@ console.log('DB_NAME=', process.env.DB_NAME);
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST ?? 'localhost',
+      host: '/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}'
       port: Number(process.env.DB_PORT ?? 5432),
       username: process.env.DB_USERNAME ?? 'postgres',
       password: process.env.DB_PASSWORD ?? 'postgres',
