@@ -4,6 +4,11 @@ import { AppService } from './app.service.js';
 import { TasksModule } from './tasks/tasks.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+console.log('DB_HOST=', process.env.DB_HOST);
+console.log('DB_PORT=', process.env.DB_PORT);
+console.log('DB_USERNAME=', process.env.DB_USERNAME);
+console.log('DB_NAME=', process.env.DB_NAME);
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
