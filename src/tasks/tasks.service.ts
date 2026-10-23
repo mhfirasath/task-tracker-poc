@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Task } from './task.entity.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
+import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
 
 @Injectable()
 export class TasksService {
@@ -12,10 +13,27 @@ export class TasksService {
         private taskRepository: Repository<Task>,
     ) { }
 
-    findAll(userId: number) {
-        return this.taskRepository.find({
-            where: { userId },
-        });
+    findAll(userId: number, query: FindTasksQueryDto = {}) {
+        const qb = this.taskRepository
+            .createQueryBuilder('task')
+            .where('task.userId = :userId', { userId })
+            .orderBy('task.id', 'ASC');
+
+        const search = query.q?.trim();
+        if (search) {
+            // Escape LIKE wildcards so user input is matched literally.
+            const escaped = search.toLowerCase().replace(/[\\%_]/g, (char) => `\\${char}`);
+            qb.andWhere(
+                `(LOWER(task.title) LIKE :search OR LOWER(COALESCE(task.description, '')) LIKE :search)`,
+                { search: `%${escaped}%` },
+            );
+        }
+
+        if (query.completed !== undefined) {
+            qb.andWhere('task.completed = :completed', { completed: query.completed });
+        }
+
+        return qb.getMany();
     }
 
     createTask(userId: number, createTaskDto: CreateTaskDto) {

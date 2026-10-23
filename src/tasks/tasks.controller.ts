@@ -6,6 +6,7 @@ import {
     Param,
     Patch,
     Post,
+    Query,
     Req,
     UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { TasksService } from './tasks.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
+import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
 
 
 @Controller('tasks')
@@ -28,9 +30,12 @@ export class TasksController {
     ) { }
 
     @Get()
-    getTasks(@Req() request: AuthenticatedRequest) {
-        return this.tasksService.findAll(request.user.sub);
-        }
+    getTasks(
+        @Req() request: AuthenticatedRequest,
+        @Query() query: FindTasksQueryDto,
+    ) {
+        return this.tasksService.findAll(request.user.sub, query);
+    }
 
 
     @Post()
