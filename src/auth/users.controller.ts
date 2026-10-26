@@ -7,26 +7,39 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
+import type { JwtPayload } from './jwt.strategy.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UsersService } from './users.service.js';
 
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List all users' })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   findAll() {
     return this.usersService.findAll();
   }
 
+  @Get('me')
+  @ApiOperation({ summary: "Get the logged-in user's profile" })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  getProfile(@Req() req: { user: JwtPayload }) {
+    return this.usersService.findOne(req.user.sub);
+  }
+
   @Get(':id')
+  @ApiOperation({ summary: 'Get a user by id' })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   findOne(@Param('id', ParseIntPipe) id: number) {
@@ -34,11 +47,13 @@ export class UsersController {
   }
 
   @Post()
+  @ApiOperation({ summary: 'Create a user (sign up)' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a user' })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   update(
@@ -49,6 +64,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a user' })
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   remove(@Param('id', ParseIntPipe) id: number) {

@@ -10,7 +10,7 @@ import {
     Req,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import type { JwtPayload } from '../auth/jwt.strategy.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
@@ -20,6 +20,7 @@ import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
 
 
+@ApiTags('Tasks')
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth('access-token')
@@ -30,6 +31,7 @@ export class TasksController {
     ) { }
 
     @Get()
+    @ApiOperation({ summary: 'List your tasks, optionally filtered by search text or completed status' })
     getTasks(
         @Req() request: AuthenticatedRequest,
         @Query() query: FindTasksQueryDto,
@@ -39,6 +41,7 @@ export class TasksController {
 
 
     @Post()
+    @ApiOperation({ summary: 'Create a task' })
     createTask(
         @Req() request: AuthenticatedRequest,
         @Body() createTaskDto: CreateTaskDto,
@@ -47,6 +50,7 @@ export class TasksController {
     }
 
     @Patch(':id')
+    @ApiOperation({ summary: 'Update one of your tasks' })
     updateTask(
         @Req() request: AuthenticatedRequest,
         @Param('id') id: number,
@@ -60,6 +64,7 @@ export class TasksController {
     }
 
     @Delete(':id')
+    @ApiOperation({ summary: 'Delete one of your tasks' })
     deleteTask(
         @Req() request: AuthenticatedRequest,
         @Param('id') id: number,

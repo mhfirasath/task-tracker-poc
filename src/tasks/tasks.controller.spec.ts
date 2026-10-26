@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { TasksController } from './tasks.controller.js';
+import { TasksService } from './tasks.service.js';
 
 describe('TasksController', () => {
   let controller: TasksController;
@@ -7,7 +9,11 @@ describe('TasksController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TasksController],
-    }).compile();
+      providers: [{ provide: TasksService, useValue: {} }],
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<TasksController>(TasksController);
   });
