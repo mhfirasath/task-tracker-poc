@@ -6,13 +6,17 @@ import { PassportModule } from '@nestjs/passport';
 
 
 import { Task } from './task.entity.js';
+import { User } from '../auth/user.entity.js';
+import { AuthModule } from '../auth/auth.module.js';
+import { AdminTasksController } from './admin-tasks.controller.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Task]),
+    TypeOrmModule.forFeature([Task, User]),
+    AuthModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
-  controllers: [TasksController],
+  controllers: [TasksController, AdminTasksController],
   providers: [TasksService]
 })
 export class TasksModule {}

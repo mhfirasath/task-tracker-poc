@@ -1,5 +1,23 @@
 {
   "permissions": {
     "defaultMode": "plan"
+  },
+  "mcpServers": {
+    "gcp-cloud-run": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/cloud-run-mcp"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "backend-api-512807",
+        "GOOGLE_CLOUD_REGION": "asia-south1",
+        "DEFAULT_SERVICE_NAME": "task-tracker-api"
+      }
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
   }
 }

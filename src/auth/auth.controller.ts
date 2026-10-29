@@ -13,4 +13,10 @@ export class AuthController {
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
+
+  @Post('admin/login')
+  @ApiOperation({ summary: 'Log in as an admin and receive an ADMIN JWT access token' })
+  adminLogin(@Body() loginDto: LoginDto) {
+    return this.authService.adminLogin(loginDto);
+  }
 }

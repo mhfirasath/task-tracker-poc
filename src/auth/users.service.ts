@@ -37,7 +37,6 @@ export class UsersService {
     const user = this.userRepository.create({
       username: createUserDto.username,
       password: await bcrypt.hash(createUserDto.password, 12),
-      role: createUserDto.role ?? 'USER',
     });
 
     const savedUser = await this.userRepository.save(user);
@@ -47,7 +46,6 @@ export class UsersService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(id);
     user.username = updateUserDto.username ?? user.username;
-    user.role = updateUserDto.role ?? user.role;
 
     if (updateUserDto.password) {
       user.password = await bcrypt.hash(updateUserDto.password, 12);

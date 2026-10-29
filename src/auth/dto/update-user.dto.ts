@@ -10,9 +10,4 @@ export class UpdateUserDto {
   @IsString()
   @MaxLength(255)
   password?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  role?: string;
 }

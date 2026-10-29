@@ -31,6 +31,7 @@ async function bootstrap() {
       },
       'access-token',
     )
+    .addBasicAuth({ type: 'http', scheme: 'basic' }, 'basic')
     .build();
   const document = SwaggerModule.createDocument(
     app,

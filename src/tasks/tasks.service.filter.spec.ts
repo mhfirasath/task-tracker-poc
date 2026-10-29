@@ -2,18 +2,26 @@ import { describe, expect, it, vi } from 'vitest';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { TasksService } from './tasks.service.js';
+import { NotFoundException } from '@nestjs/common';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
+import { AdminFindTasksQueryDto } from './dto/admin-find-tasks-query.dto.js';
 
 function createService() {
   const qb = {
     where: vi.fn().mockReturnThis(),
     orderBy: vi.fn().mockReturnThis(),
+    addOrderBy: vi.fn().mockReturnThis(),
     andWhere: vi.fn().mockReturnThis(),
     getMany: vi.fn().mockResolvedValue([]),
   };
-  const repository = { createQueryBuilder: vi.fn(() => qb) };
-  const service = new TasksService(repository as any);
-  return { service, qb };
+  const repository = {
+    createQueryBuilder: vi.fn(() => qb),
+    create: vi.fn((task) => task),
+    save: vi.fn(async (task) => ({ id: 1, ...task })),
+  };
+  const userRepository = { exists: vi.fn().mockResolvedValue(true) };
+  const service = new TasksService(repository as any, userRepository as any);
+  return { service, qb, repository, userRepository };
 }
 
 describe('TasksService.findAll filters', () => {
@@ -53,6 +61,59 @@ describe('TasksService.findAll filters', () => {
     await service.findAll(7, { completed: false });
 
     expect(qb.andWhere).toHaveBeenCalledWith('task.completed = :completed', { completed: false });
+  });
+});
+
+describe('TasksService admin methods', () => {
+  it('lists tasks of all users when no userId is given', async () => {
+    const { service, qb } = createService();
+
+    await service.findAllForAdmin();
+
+    expect(qb.where).not.toHaveBeenCalled();
+  });
+
+  it('narrows to one user and still applies filters', async () => {
+    const { service, qb } = createService();
+
+    await service.findAllForAdmin({ userId: 3, completed: true });
+
+    expect(qb.where).toHaveBeenCalledWith('task.userId = :userId', { userId: 3 });
+    expect(qb.andWhere).toHaveBeenCalledWith('task.completed = :completed', { completed: true });
+  });
+
+  it('creates a task for the given user', async () => {
+    const { service, repository } = createService();
+
+    const task = await service.createTaskForUser({ userId: 5, title: 'Review' });
+
+    expect(repository.create).toHaveBeenCalledWith({ title: 'Review', userId: 5 });
+    expect(task).toMatchObject({ id: 1, userId: 5, title: 'Review' });
+  });
+
+  it('rejects creating a task for a missing user', async () => {
+    const { service, repository, userRepository } = createService();
+    userRepository.exists.mockResolvedValue(false);
+
+    await expect(service.createTaskForUser({ userId: 99, title: 'X' })).rejects.toThrow(
+      NotFoundException,
+    );
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+});
+
+describe('AdminFindTasksQueryDto', () => {
+  const toDto = (raw: Record<string, unknown>) =>
+    plainToInstance(AdminFindTasksQueryDto, raw);
+
+  it('converts the userId query string to a number', () => {
+    const dto = toDto({ userId: '4' });
+    expect(dto.userId).toBe(4);
+    expect(validateSync(dto)).toHaveLength(0);
+  });
+
+  it('rejects a non-numeric userId', () => {
+    expect(validateSync(toDto({ userId: 'abc' }))).not.toHaveLength(0);
   });
 });
 

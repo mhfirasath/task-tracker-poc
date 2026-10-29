@@ -14,15 +14,20 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import type { JwtPayload } from '../auth/jwt.strategy.js';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { Role } from '../auth/role.js';
+import { Roles } from '../auth/roles.decorator.js';
+import { RolesGuard } from '../auth/roles.guard.js';
 import { TasksService } from './tasks.service.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { FindTasksQueryDto } from './dto/find-tasks-query.dto.js';
 
 
+// USER only: admin ids live in a separate table and can collide with user ids.
 @ApiTags('Tasks')
 @Controller('tasks')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.USER)
 @ApiBearerAuth('access-token')
 export class TasksController {
 

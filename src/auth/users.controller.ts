@@ -13,6 +13,9 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import type { JwtPayload } from './jwt.strategy.js';
+import { Role } from './role.js';
+import { Roles } from './roles.decorator.js';
+import { RolesGuard } from './roles.guard.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UsersService } from './users.service.js';
@@ -32,7 +35,8 @@ export class UsersController {
 
   @Get('me')
   @ApiOperation({ summary: "Get the logged-in user's profile" })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.USER)
   @ApiBearerAuth('access-token')
   getProfile(@Req() req: { user: JwtPayload }) {
     return this.usersService.findOne(req.user.sub);
